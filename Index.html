@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classroom Wall & Board</title>
+  <style>
+    /* --- GENERAL STYLES & RESET --- */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #f3f4f6; color: #333; padding-bottom: 60px; }
+
+    /* --- FIXED CUSTOM BANNER --- */
+    header {
+      position: sticky;
+      top: 0;
+      /* FIXED FILE NAME WRITTEN WITH CAPITAL B: Banner01.png */
+      background: linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.45)), url('Banner01.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      
+      color: white;
+      text-align: center;
+      padding: 25px 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      z-index: 1000;
+    }
+    header h1 { 
+      font-size: 1.7rem; 
+      margin-bottom: 4px; 
+      font-weight: 700; 
+      letter-spacing: 0.5px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+    }
+    
+    /* Creator Title Area */
+    .creator-branding { 
+      font-size: 0.85rem; 
+      color: #f1f5f9; 
+      margin-bottom: 12px; 
+      font-weight: 500;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+    }
+    .creator-tag { background: #f59e0b; color: #1e1b4b; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-left: 5px; }
+
+    /* Navigation Tabs inside the banner */
+    nav { display: flex; justify-content: center; gap: 10px; margin-top: 5px; }
+    nav button {
+      background: rgba(15, 23, 42, 0.6); 
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s, color 0.2s;
+    }
+    nav button:hover, nav button.active { background: white; color: #4f46e5; border-color: white; }
+    nav button.admin-btn { border: 1px dashed #f59e0b; color: #f59e0b; background: rgba(15, 23, 42, 0.75); }
+    nav button.admin-btn:hover, nav button.admin-btn.active { background: #f59e0b; color: #1e1b4b; border-color: #f59e0b; }
+
+    /* --- PAGE VIEW WRAPPERS --- */
+    .view-section { display: none; padding: 20px; max-width: 1000px; margin: 0 auto; }
+    .view-section.active { display: block; }
+
+    /* --- PROFILE WALL --- */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 20px;
+      margin-top: 15px;
+    }
+    .profile-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      position: relative;
+      border: 1px solid #e5e7eb;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .profile-card:hover { transform: translateY(-4px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+    .media-box { width: 100%; height: 200px; background: #e5e7eb; position: relative; overflow: hidden; }
+    .media-box img, .media-box video { width: 100%; height: 100%; object-fit: cover; }
+    
+    .sticker-layer { position: absolute; top: 10px; left: 10px; display: flex; gap: 5px; z-index: 10; }
+    .sticker { font-size: 1.5rem; filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.2)); }
+    
+    .card-info { padding: 15px; }
+    .card-info h3 { margin-bottom: 4px; font-size: 1.1rem; color: #111827; }
+    .card-info .position { font-size: 0.85rem; color: #4f46e5; font-weight: 600; margin-bottom: 10px; }
+    .card-info .meta { font-size: 0.8rem; color: #6b7280; display: flex; justify-content: space-between; }
+
+    /* --- DETAILS INTERACTIVE MODAL (POP-UP) --- */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      max-width: 450px;
+      width: 90%;
+      position: relative;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+      text-align: center;
+      animation: popIn 0.3s ease-out;
+    }
+    @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-close { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #9ca3af; }
+    .modal-img { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; margin: 0 auto 15px; display: block; border: 4px solid #6366f1; background: #e5e7eb; }
+    .modal-bio { background: #f9fafb; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: left; border-left: 4px solid #4f46e5; }
+
+    /* --- STICKY NOTE BOARD --- */
+    .corkboard {
+      background: #e7cba9; border: 8px solid #8b5a2b; border-radius: 8px; padding: 20px; min-height: 400px; display: flex; flex-wrap: wrap; gap: 20px; box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
+    }
+    .sticky-note { width: 160px; min-height: 160px; padding: 15px; box-shadow: 5px 5px 7px rgba(0,0,0,0.15); display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+    .sticky-note.note-0 { background: #fef68a; transform: rotate(-2deg); }
+    .sticky-note.note-1 { background: #bfdbfe; transform: rotate(3deg); }
+    .sticky-note.note-2 { background: #fbcfe8; transform: rotate(-1deg); }
+    .sticky-note p { font-size: 0.9rem; font-style: italic; line-height: 1.4; word-break: break-word; }
+    .sticky-note .author { font-size: 0.75rem; text-align: right; font-weight: bold; color: #4b5563; }
+
+    /* Forms and Panel Blocks */
+    .input-box { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .input-box h2 { font-size: 1.1rem; margin-bottom: 10px; }
+    input, textarea, select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; }
+    button.btn-primary { background: #4f46e5; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; font-size: 0.95rem; }
+    button.btn-primary:hover { background: #4338ca; }
+
+    /* --- CREATOR PANEL QUEUE --- */
+    .mod-badge { background: #e0e7ff; color: #4f46e5; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; display: inline-block; border: 1px solid #c7d2fe; }
+    .mod-actions { display: flex; gap: 5px; margin-top: 12px; }
+    .btn-approve { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; flex: 1; }
+    .btn-delete { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; flex: 1; }
+  </style>
+</head>
+<body>
+
+  <!-- FIXED BANNER HEADER WITH RESPONSIVE BACKGROUND -->
+  <header id="main-header">
+    <!-- YOU CAN FREELY EDIT THIS MAIN TITLE RIGHT HERE: -->
+    <h1>🏫 Our Classroom Memory Wall</h1>
+    <div class="creator-branding">
+      Created by <strong>🎨 Aerina 💫</strong> <span class="creator-tag">👑 Lead Creator & Lead Architect</span>
+    </div>
+    <nav>
+      <button id="btn-wall-page" class="nav-btn active" onclick="switchView('wall-page', 'btn-wall-page')">Profiles Wall</button>
+      <button id="btn-board-page" class="nav-btn" onclick="switchView('board-page', 'btn-board-page')">Sticky Notes</button>
+      <button id="btn-mod-page" class="nav-btn admin-btn" onclick="openAerinaPanel('btn-mod-page')">🎨 Aerina's Panel 💫</button>
+    </nav>
+  </header>
+
+  <!-- VIEW 1: PROFILE WALL -->
+  <section id="wall-page" class="view-section active">
+    <div class="input-box">
+      <h2>Add New Student / Teacher Card</h2>
+      <input type="text" id="profile-name" placeholder="Full Name" required>
+      <input type="text" id="profile-position" placeholder="Position (e.g. Class President, Math Teacher)" required>
+      <input type="text" id="profile-teacher" placeholder="Assigned Teacher" required>
+      <textarea id="profile-info" placeholder="Extra Info (e.g. Favorite memory, Future goals, Hobbies...)" rows="2"></textarea>
+      
+      <label style="display:block; font-size:0.85rem; margin-bottom:4px; font-weight:bold; color:#4b5563;">Upload Media (Photo or Video):</label>
+      <input type="file" id="profile-media-file" accept="image/*, video/*" required>
+
+      <select id="profile-sticker">
+        <option value="">Choose a Sticker</option>
+        <option value="👑">👑 Crown</option>
+        <option value="⭐">⭐ Star</option>
+        <option value="🎨">🎨 Artist</option>
+      </select>
+      <button class="btn-primary" onclick="submitProfile()">Submit to Queue</button>
+    </div>
+
+    <h2>Live Wall Cards (Click to open Info)</h2>
+    <div class="grid-container" id="live-cards-container"></div>
+  </section>
+
+  <!-- VIEW 2: STICKY NOTES -->
+  <section id="board-page" class="view-section">
+    <div class="input-box">
+      <h2>Post a Note to the Board</h2>
+      <textarea id="note-message" placeholder="Type a lovely message..." rows="3" required></textarea>
+      <input type="text" id="note-author" placeholder="Your Name (or leave blank for Anonymous)">
+      <button class="btn-primary" onclick="submitNote()">Pin Note to Queue</button>
+    </div>
+
+    <h2>The Message Board</h2>
+    <div class="corkboard" id="live-notes-container"></div>
+  </section>
+
+  <!-- VIEW 3: REBRANDED AERINA QUEUE -->
+  <section id="mod-page" class="view-section">
+    <h2 style="color: #f59e0b; margin-bottom: 5px;">🎨 Aerina's Admin Dashboard 💫</h2>
+
+    Name
+Position
+Teacher
+
+About Me:
+Bio details...
+
+
+let liveCards = JSON.parse(localStorage.getItem('classroomCards')) || [];
+let liveNotes = JSON.parse(localStorage.getItem('classroomNotes')) || [];
+let pendingQueue = JSON.parse(localStorage.getItem('classroomPending')) || [];
+renderLiveCards();
+renderLiveNotes();
+renderModQueueUI();
+function switchView(viewId, activeBtnId) {
+document.getElementById('wall-page').classList.remove('active');
+document.getElementById('board-page').classList.remove('active');
+document.getElementById('mod-page').classList.remove('active');
+document.getElementById('btn-wall-page').classList.remove('active');
+document.getElementById('btn-board-page').classList.remove('active');
+document.getElementById('btn-mod-page').classList.remove('active');
+document.getElementById(viewId).classList.add('active');
+document.getElementById(activeBtnId).classList.add('active');
+}
+function openAerinaPanel(btnId) {
+const accessCode = prompt("🔑 Enter security pass-code to view Aerina's Admin Panel:");
+if (accessCode === "admin123") {
+switchView('mod-page', btnId);
+} else if (accessCode !== null) {
+alert("❌ Unauthorized Access. Incorrect security code entry.");
+}
+}
+function submitProfile() {
+const name = document.getElementById('profile-name').value;
+const pos = document.getElementById('profile-position').value;
+const tchr = document.getElementById('profile-teacher').value;
+const bio = document.getElementById('profile-info').value;
+const stk = document.getElementById('profile-sticker').value || '⭐';
+const fileInput = document.getElementById('profile-media-file');
+if (!name || !pos || !tchr) return alert("Please fill out full details.");
+if (fileInput.files.length === 0) return alert("Please upload an image or video file.");
+const file = fileInput.files;
+const isVideo = file.type.startsWith('video/');
+const reader = new FileReader();
+reader.onload = function(e) {
+const newQueueItem = {
+id: Date.now(),
+type: 'profile',
+name: name,
+position: pos,
+teacher: tchr,
+sticker: stk,
+bio: bio,
+mediaUrl: e.target.result,
+isVideo: isVideo,
+date: new Date().toLocaleDateString()
+};
+pendingQueue.push(newQueueItem);
+saveAndRefreshAll();
+document.getElementById('profile-name').value = '';
+document.getElementById('profile-position').value = '';
+document.getElementById('profile-teacher').value = '';
+document.getElementById('profile-info').value = '';
+fileInput.value = '';
+alert("Sent to the Dashboard queue! Awaiting review in Aerina's Panel.");
+};
+reader.readAsDataURL(file);
+}
+function submitNote() {
+const msg = document.getElementById('note-message').value;
+let author = document.getElementById('note-author').value || 'Anonymous';
+if (!msg) return alert("Please write a message first.");
+const newQueueNote = {
+id: Date.now(),
+type: 'note',
+msg: msg,
+author: author
+};
+pendingQueue.push(newQueueNote);
+saveAndRefreshAll();
+document.getElementById('note-message').value = '';
+document.getElementById('note-author').value = '';
+alert("Note sent successfully to the validation queue!");
+}
+function approveItem(id) {
+const targetIndex = pendingQueue.findIndex(item => item.id === id);
+if (targetIndex === -1) return;
+const approvedItem = pendingQueue[targetIndex];
+if (approvedItem.type === 'profile') {
+liveCards.push(approvedItem);
+localStorage.setItem('classroomCards', JSON.stringify(liveCards));
+renderLiveCards();
+} else {
+liveNotes.push(approvedItem);
+localStorage.setItem('classroomNotes', JSON.stringify(liveNotes));
+renderLiveNotes();
+}
+pendingQueue.splice(targetIndex, 1);
+saveAndRefreshAll();
+}
+function rejectItem(id) {
+pendingQueue = pendingQueue.filter(item => item.id !== id);
+saveAndRefreshAll();
+}
+function saveAndRefreshAll() {
+localStorage.setItem('classroomPending', JSON.stringify(pendingQueue));
+renderModQueueUI();
+}
+function renderLiveCards() {
+const container = document.getElementById('live-cards-container');
+container.innerHTML = '';
+if (liveCards.length === 0) {
+container.innerHTML = <p style="color:gray; font-style:italic; grid-column: 1/-1; text-align:center; padding:20px;">No profiles on the wall yet. Add an entry above!</p>;
+return;
+}
+liveCards.forEach((card, idx) => {
+const mediaTag = card.isVideo
+? <video src="${card.mediaUrl}" muted loop autoplay></video>
+: <img src="${card.mediaUrl}" alt="Media">;
+container.innerHTML += <div class="profile-card" onclick="openProfileModal(${idx})"> <div class="sticker-layer"><span class="sticker">${card.sticker}</span></div> <div class="media-box">${mediaTag}</div> <div class="card-info"> <h3>${card.name}</h3> <p class="position">${card.position}</p> <div class="meta"><span>Tchr: ${card.teacher}</span><span>${card.date}</span></div> </div> </div>;
+});
+}
+function renderLiveNotes() {
+const container = document.getElementById('live-notes-container');
+container.innerHTML = '';
+if (liveNotes.length === 0) {
+container.innerHTML = <p style="color:white; font-style:italic; padding:20px;">The sticky board is completely empty right now.</p>;
+return;
+}
+liveNotes.forEach((note, index) => {
+const rotationClass = note-${index % 3};
+container.innerHTML += <div class="sticky-note ${rotationClass}"> <p>"${note.msg}"</p> <div class="author">- ${note.author}</div> </div>;
+});
+}
+function renderModQueueUI() {
+const container = document.getElementById('mod-queue-container');
+container.innerHTML = '';
+if (pendingQueue.length === 0) {
+container.innerHTML = <p style="color: gray; font-style: italic; grid-column: 1/-1; padding:10px;">No incoming items to process in your queue.</p>;
+return;
+}
+pendingQueue.forEach(item => {
+const queueCard = document.createElement('div');
+queueCard.className = 'profile-card';
+queueCard.style.padding = '15px';
+if (item.type === 'profile') {
+queueCard.innerHTML = <span class="mod-badge">CARD DESIGN</span> <strong style="display:block; margin: 8px 0 2px 0;">${item.name}</strong> <small style="color:#555; display:block;">${item.position} (Tr. ${item.teacher})</small>;
+} else {
+queueCard.innerHTML = <span class="mod-badge" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">STICKY NOTE</span> <p style="font-size:0.85rem; margin: 8px 0 4px 0; font-style:italic;">"${item.msg}"</p> <small style="font-weight:bold; color:#444;">- ${item.author}</small>;
+}
+const actions = document.createElement('div');
+actions.className = 'mod-actions';
+actions.innerHTML = <button class="btn-approve" onclick="approveItem(${item.id})">Approve ✅</button> <button class="btn-delete" onclick="rejectItem(${item.id})">Delete ❌</button>;
+queueCard.appendChild(actions);
+container.appendChild(queueCard);
+});
+}
+function openProfileModal(index) {
+const card = liveCards[index];
+document.getElementById('modal-target-name').innerText = card.name + " " + card.sticker;
+document.getElementById('modal-target-position').innerText = card.position;
+document.getElementById('modal-target-teacher').innerText = card.teacher !== 'None' ? Teacher: ${card.teacher} : 'Faculty Member';
+document.getElementById('modal-target-bio').innerText = card.bio || "No custom stories or memories uploaded yet.";
+const placeholder = document.getElementById('modal-media-placeholder');
+placeholder.innerHTML = card.isVideo
+? <video id="modal-target-img" class="modal-img" src="${card.mediaUrl}" controls autoplay></video>
+: <img id="modal-target-img" class="modal-img" src="${card.mediaUrl}" alt="Profile image">;
+document.getElementById('profile-modal').classList.add('active');
+}
+function closeProfileModal(e) {
+if (e.target === document.getElementById('profile-modal')) {
+document.getElementById('profile-modal').classList.remove('active');
+const video = document.querySelector('.modal-content video');
+if (video) video.pause();
+}
+}
